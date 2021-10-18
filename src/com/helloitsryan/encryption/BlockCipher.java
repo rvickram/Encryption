@@ -91,22 +91,24 @@ public class BlockCipher {
         int len = Math.max(aLen, bLen);
 
         // To store the resultant XOR
-        String res = "";
+        StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < len; i++) {
             if (a.charAt(i) == b.charAt(i))
-                res += "0";
+                res.append("0");
             else
-                res += "1";
+                res.append("1");
         }
 
-        return res;
+        return res.toString();
     }
 
     private String addZeros (String str, int n) {
+        StringBuilder strBuilder = new StringBuilder(str);
         for (int i = 0; i < n; i++) {
-            str = "0" + str;
+            strBuilder.insert(0, "0");
         }
+        str = strBuilder.toString();
 
         return str;
     }
