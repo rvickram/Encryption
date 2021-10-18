@@ -36,8 +36,11 @@ public class BlockCipher {
         final BlockCipher blockCipher = new BlockCipher(key);
 
         int[] plaintext = { 2, 5, 0, 9, 2, 3, 2, 8, 2 };
-        System.out.println(Arrays.toString(
+        System.out.println("CBC (Cipher-Block-Chaining): "+Arrays.toString(
                 blockCipher.encryptCipherBlockChaining(plaintext, 23)
+        ));
+        System.out.println("CTR (Counter-Mode): " + Arrays.toString(
+                blockCipher.encryptCounterMode(plaintext, 51)
         ));
     }
 
@@ -66,6 +69,27 @@ public class BlockCipher {
 
             postXor = Integer.parseInt(xor(binaryInitVector, binaryBlock),2);
             ciphertext[i] = key[postXor];
+        }
+
+        return ciphertext;
+    }
+
+    public int[] encryptCounterMode(int[] plaintext, int initVector) {
+        int[] ciphertext = new int[plaintext.length];
+
+        for (int i = 0; i < plaintext.length; i++) {
+            int encodedInitVector = key[initVector];
+
+            String binaryEncodedInitVector = Integer.toBinaryString(encodedInitVector);
+            String binaryBlock = Integer.toBinaryString(plaintext[i]);
+
+            int cipherBlock = Integer.parseInt(xor(binaryEncodedInitVector, binaryBlock), 2);
+            ciphertext[i] = cipherBlock;
+
+            // wrap around to 0 if we reach the end of the chars in key
+            if (++initVector >= key.length) {
+                initVector = initVector - (key.length - 1);
+            }
         }
 
         return ciphertext;
