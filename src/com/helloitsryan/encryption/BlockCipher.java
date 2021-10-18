@@ -48,7 +48,6 @@ public class BlockCipher {
 
     public BlockCipher(final int[] key) {
         this.key = key;
-        System.out.println(key.length);
     }
 
     public int[] encryptCipherBlockChaining(int[] plaintext, int initVector) {
