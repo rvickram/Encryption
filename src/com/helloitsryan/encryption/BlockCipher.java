@@ -1,6 +1,6 @@
 package com.helloitsryan.encryption;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class BlockCipher {
 
@@ -42,6 +42,24 @@ public class BlockCipher {
         System.out.println("CTR (Counter-Mode): " + Arrays.toString(
                 blockCipher.encryptCounterMode(plaintext, 51)
         ));
+
+        Integer[][] ciphers = {
+                {56, 16, 139, 19, 243, 149},
+                {50, 20, 225, 125, 17, 71, 232, 15},
+                {145, 98, 145, 159, 65, 234, 64, 73},
+                {223, 212, 126, 171, 128, 159, 244, 153}
+        };
+        int[] input = {145, 19, 71, 73, 232, 149, 244, 153};
+        System.out.println("Decrypt: " + blockCipher.decrypt(
+                input,
+                Map.of(
+                        "melody", ciphers[0],
+                        "subtract", ciphers[1],
+                        "consider", ciphers[2],
+                        "neighbor", ciphers[3]
+                ),
+                        111)
+        );
     }
 
     private final int[] key;
@@ -92,6 +110,49 @@ public class BlockCipher {
         }
 
         return ciphertext;
+    }
+
+    public String decrypt(int[] input, Map<String, Integer[]> knownMessageCipher, int initVector) {
+        // maps the encoded val -> decoded val
+        Map<Integer, Integer> valueKeyMap = new HashMap<>();
+
+        // build the key from known messages
+        for (Map.Entry<String, Integer[]> pair : knownMessageCipher.entrySet()) {
+            String plaintext = pair.getKey();
+            Integer[] cipherText = pair.getValue();
+
+            String binaryInitVector = Integer.toBinaryString(initVector);
+            String binaryInput = Integer.toBinaryString(plaintext.charAt(0));
+
+            int postXor = Integer.parseInt(xor(binaryInput, binaryInitVector), 2);
+            valueKeyMap.put(cipherText[0], postXor);
+
+
+            for (int i = 1; i < plaintext.length(); i++) {
+                binaryInitVector = Integer.toBinaryString(cipherText[i-1]);
+                binaryInput = Integer.toBinaryString(plaintext.charAt(i));
+
+                postXor = Integer.parseInt(xor(binaryInput, binaryInitVector), 2);
+                valueKeyMap.put(cipherText[i], postXor);
+            }
+        }
+
+        // now, decode the string
+        StringBuilder builder = new StringBuilder();
+
+        String binaryInitVector = Integer.toBinaryString(initVector);
+        String binaryPostXor = Integer.toBinaryString(valueKeyMap.get(input[0]));
+        int decoded = Integer.parseInt(xor(binaryPostXor, binaryInitVector), 2);
+        builder.append((char)decoded);
+
+        for (int i = 1; i < input.length; i++) {
+            binaryInitVector = Integer.toBinaryString(input[i-1]);
+            binaryPostXor = Integer.toBinaryString(valueKeyMap.get(input[i]));
+            decoded = Integer.parseInt(xor(binaryPostXor, binaryInitVector), 2);
+            builder.append((char)decoded);
+        }
+
+        return builder.toString();
     }
 
     /* Helper Functions below */
